@@ -16,7 +16,7 @@
 
   function myplguin_admin_page(){
 
-    $sourceUrl = 'https://de.wikipedia.org/w/api.php?format=json&action=query&generator=random&grnnamespace=0&prop=revisions|images&rvprop=content&grnlimit=1';
+    $sourceUrl = 'https://de.wikipedia.org/w/api.php?format=json&action=query&generator=random&grnnamespace=0&prop=revisions&rvprop=content&grnlimit=1';
 
     $ch = curl_init($sourceUrl);
     curl_setopt ($ch, CURLOPT_RETURNTRANSFER, 1);
@@ -24,8 +24,18 @@
     $c = curl_exec($ch);
 
     $json = json_decode($c);
-var_dump($json);
-    $content = $json->{'parse'}->{'text'}->{'*'}; // get the main text content of the query (it's parsed HTML)
+    var_dump($json);
+
+    foreach ($json->query->pages as $page)  {
+
+      $content = $page->revisions[0]->{'*'};
+      var_dump($content);
+
+      $pattern = '({{.*}})'; // http://www.phpbuilder.com/board/showthread.php?t=10352690
+      preg_match($pattern, $content, $matches);
+
+      var_dump($matches);
+
 
     // pattern for first match of a paragraph
     $pattern = '#<p>(.*?)</p>#s'; // http://www.phpbuilder.com/board/showthread.php?t=10352690
@@ -35,6 +45,7 @@ var_dump($json);
         print strip_tags(implode("\n\n",$matches[1])); // Content of the first paragraph without the HTML tags.
     }
 
+  }
 
     return false;
 
