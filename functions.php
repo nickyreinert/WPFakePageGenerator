@@ -24,28 +24,102 @@
     $c = curl_exec($ch);
 
     $json = json_decode($c);
-    var_dump($json);
+
+    $wordCount = 1;
+
+    $sentenceCount = 1;
+
+    $maxWordCount = 5;
+
+    $maxSentenceCount = 5;
+
+    $allLetters = array();
 
     foreach ($json->query->pages as $page)  {
 
       $content = $page->revisions[0]->{'*'};
-      var_dump($content);
 
-      $pattern = '({{.*}})'; // http://www.phpbuilder.com/board/showthread.php?t=10352690
-      preg_match($pattern, $content, $matches);
+      preg_match_all('~\p{L}+(?:-\p{L}+)*~u', $content, $words);
 
-      var_dump($matches);
+      $numbers = range(0, sizeof($words[0]) - 1);
+
+      shuffle($numbers);
+
+      foreach ($numbers as $number) {
+        $currentLetters = str_split($words[0][$number]);
+
+        foreach ($currentLetters as $currentLetter) {
+
+            if (array_key_exists($currentLetter, $allLetters)) {
+
+                ++$allLetters[$currentLetter];
+
+            } else {
+
+                $allLetters[$currentLetter] = 1;
+
+            }
+
+        }
+
+        if (strlen($words[0][$number]) > 1) {
+
+          if ($wordCount == 1) {
+
+            echo ucwords($words[0][$number]).' ';
+
+            ++$wordCount;
+
+          } else if ($wordCount >= $maxWordCount) {
+
+            echo $words[0][$number].'. ';
+
+            $wordCount = 1;
+
+            $maxWordCount = random_int(5,15);
+
+            if ($sentenceCount >= $maxSentenceCount) {
+
+              echo '<br />';
+
+              $sentenceCount = 1;
+
+              $maxSentenceCount = random_int(3,10);
+
+            } else {
+
+              ++$sentenceCount;
+
+            }
 
 
-    // pattern for first match of a paragraph
-    $pattern = '#<p>(.*?)</p>#s'; // http://www.phpbuilder.com/board/showthread.php?t=10352690
-    if(preg_match_all($pattern, $content, $matches))
-    {
-        // print $matches[0]; // content of the first paragraph (including wrapping <p> tag)
-        print strip_tags(implode("\n\n",$matches[1])); // Content of the first paragraph without the HTML tags.
+          } else {
+
+            echo $words[0][$number].' ';
+
+            ++$wordCount;
+
+          }
+
+        }
+
+      }
+
+      var_dump($allLetters);
+      $image = imagecreatetruecolor(1200, 200);
+      for($Row = 1; $Row <= $Height; $Row++) {
+        for($Column = 1; $Column <= $Width; $Column++) {
+          $Red = mt_rand(0,255);
+          $Green = mt_rand(0,255);
+          $Blue = mt_rand(0,255);
+          $Colour = imagecolorallocate ($Image, $Red , $Green, $Blue);
+          imagesetpixel($Image,$Column - 1 , $Row - 1, $Colour);
+        }
     }
 
-  }
+
+
+    }
 
     return false;
 
