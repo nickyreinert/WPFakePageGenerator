@@ -2,6 +2,22 @@
 
   add_action('admin_menu', 'lorem_ipsum_backend');
 
+  function str_split_unicode($str, $l = 0) {
+
+  # thanks to http://php.net/manual/de/function.str-split.php#107658
+  if ($l > 0) {
+        $ret = array();
+        $len = mb_strlen($str, "UTF-8");
+        for ($i = 0; $i < $len; $i += $l) {
+            $ret[] = mb_substr($str, $i, $l, "UTF-8");
+        }
+        return $ret;
+    }
+    return preg_split("//u", $str, -1, PREG_SPLIT_NO_EMPTY);
+}
+
+
+
   function lorem_ipsum_backend() {
 
     add_menu_page(
@@ -20,7 +36,7 @@
 
     $ch = curl_init($sourceUrl);
     curl_setopt ($ch, CURLOPT_RETURNTRANSFER, 1);
-    curl_setopt ($ch, CURLOPT_USERAGENT, "Nickyreinert"); // required by wikipedia.org server; use YOUR user agent with YOUR contact information. (otherwise your IP might get blocked)
+    curl_setopt ($ch, CURLOPT_USERAGENT, "WPFPG"); // required by wikipedia.org server; use YOUR user agent with YOUR contact information. (otherwise your IP might get blocked)
     $c = curl_exec($ch);
 
     $json = json_decode($c);
@@ -46,12 +62,13 @@
       shuffle($numbers);
 
       foreach ($numbers as $number) {
-        $currentLetters = str_split($words[0][$number]);
+        $currentLetters = str_split_unicode($words[0][$number]);
 
         foreach ($currentLetters as $currentLetter) {
 
             if (array_key_exists($currentLetter, $allLetters)) {
 
+			
                 ++$allLetters[$currentLetter];
 
             } else {
@@ -105,17 +122,41 @@
 
       }
 
-      var_dump($allLetters);
-      $image = imagecreatetruecolor(1200, 200);
-      for($Row = 1; $Row <= $Height; $Row++) {
-        for($Column = 1; $Column <= $Width; $Column++) {
-          $Red = mt_rand(0,255);
-          $Green = mt_rand(0,255);
-          $Blue = mt_rand(0,255);
-          $Colour = imagecolorallocate ($Image, $Red , $Green, $Blue);
-          imagesetpixel($Image,$Column - 1 , $Row - 1, $Colour);
-        }
-    }
+			$x = 1000;
+			$y = 1000;
+
+			$gd = imagecreatetruecolor($x, $y);
+
+			$white = imagecolorallocate($gd, 255, 255, 255);
+
+			imagefill($gd, 0, 0, $white);
+
+			imagearc ( $gd, 500, 500, 50, 50, 0, 360, $white);
+			
+			/*
+				loop through all letters
+				draw a circle with a radius based on each letters count
+				with a random position
+			
+			*/
+
+			for ($i = 0; $i < sizeof(allLetters) - 1; $i++) {
+
+				$black = imagecolorallocate($gd, 0, 0, 0);
+
+				imagesetpixel($gd, rand(0,$x), rand(0,$y), $randomColor);
+
+				#  $a = rand(0, 2);
+				#  $x = ($x + $corners[$a]['x']) / 2;
+
+				#  $y = ($y + $corners[$a]['y']) / 2;
+
+			}
+
+//			imagejpeg($gd,NULL,99);
+
+			#header('Content-Type: image/png');
+			#imagepng($gd);
 
 
 
